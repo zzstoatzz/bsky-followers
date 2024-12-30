@@ -13,7 +13,7 @@ from typing import NamedTuple, TypedDict
 from atproto import Client
 from prefect import flow, task
 from prefect.cache_policies import NONE
-from pydantic import Field
+from pydantic import Field, model_validator
 from pydantic_core import from_json, to_json
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
@@ -23,6 +23,13 @@ class Settings(BaseSettings):
 
     bsky_handle: str = Field(default=...)
     bsky_password: str = Field(default=...)
+
+    @model_validator(mode="before")
+    @classmethod
+    def validate_bsky_handle(cls, values: dict[str, str]) -> dict[str, str]:
+        if not values["bsky_handle"] and not values["bsky_password"]:
+            raise ValueError("must set env vars BSKY_HANDLE and BSKY_PASSWORD")
+        return values
 
 
 class Follower(TypedDict):
