@@ -1,3 +1,11 @@
+# /// script
+# dependencies = [
+#     "atproto",
+#     "prefect@git+https://github.com/PrefectHQ/prefect.git",
+# ]
+# ///
+
+
 from datetime import datetime
 from pathlib import Path
 from typing import NamedTuple, TypedDict
