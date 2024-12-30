@@ -27,7 +27,7 @@ class Settings(BaseSettings):
     @model_validator(mode="before")
     @classmethod
     def validate_bsky_handle(cls, values: dict[str, str]) -> dict[str, str]:
-        if not values["bsky_handle"] and not values["bsky_password"]:
+        if not (values.get("bsky_handle") and values.get("bsky_password")):
             raise ValueError("must set env vars BSKY_HANDLE and BSKY_PASSWORD")
         return values
 
