@@ -1,7 +1,7 @@
 # /// script
 # dependencies = [
 #   "atproto",
-#   "prefect@git+https://github.com/zzstoatzz/prefect.git",
+#   "prefect@git+https://github.com/prefecthq/prefect.git",
 # ]
 # ///
 
@@ -36,7 +36,10 @@ class FollowerState(TypedDict):
 
 
 @task(persist_result=False)
-def fetch_followers_from_atproto(client: Client) -> set[str]:
+def fetch_followers_from_atproto(settings: Settings) -> set[str]:
+    client = Client()
+    client.login(settings.bsky_handle, settings.bsky_password)
+    assert client.me, "Login failed"
     fs, cursor = set(), None
     while True:
         assert client.me, "client.me should be set"
@@ -45,6 +48,10 @@ def fetch_followers_from_atproto(client: Client) -> set[str]:
         if not r.cursor:
             break
         cursor = r.cursor
+    bsky_count = client.get_profile(client.me.handle).followers_count
+    print(f"App counted: {bsky_count}, Cache counted: {len(fs)}")
+    if bsky_count != len(fs):
+        print("Discrepancy detected (disabled accounts / slow indexing etc)")
     return fs
 
 
@@ -71,17 +78,7 @@ def save_updated_followers_to_cache(fs: set[str], settings: Settings):
 
 @flow(log_prints=True)
 def check_bsky_followers(settings: Settings):
-    c = Client()
-    c.login(settings.bsky_handle, settings.bsky_password)
-    assert c.me, "Login failed"
-
-    current = fetch_followers_from_atproto(c)
-    bsky_count = c.get_profile(c.me.handle).followers_count
-    print(f"App counted: {bsky_count}, Cache counted: {len(current)}")
-
-    if bsky_count != len(current):
-        print("Discrepancy detected (maybe disabled accounts or slow indexing etc)")
-
+    current = fetch_followers_from_atproto(settings)
     known = load_known_followers_from_cache(settings, wait_for=[current])
     new, lost = current - known["followers"], known["followers"] - current
 
