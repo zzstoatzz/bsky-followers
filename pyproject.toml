@@ -1,10 +1,10 @@
 [project]
 name = "bsky-followers"
 version = "0.1.0"
-description = "Add your description here"
+description = "check your Bluesky followers"
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
-    "atproto>=0.0.56",
-    "prefect>=3.1.10",
+    "atproto",
+    "prefect@git+https://github.com/PrefectHQ/prefect.git@main",
 ]
