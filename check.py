@@ -17,7 +17,8 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
-    model_config = SettingsConfigDict(env_file=".env")
+    model_config = SettingsConfigDict(env_file=".env", extra="ignore")
+
     bsky_handle: str = Field(default=...)
     bsky_password: str = Field(default=...)
     follower_cache: Path = Path("~/.bsky/followers.json").expanduser()
