@@ -21,7 +21,7 @@ class Settings(BaseSettings):
 
     bsky_handle: str = Field(default=...)
     bsky_password: str = Field(default=...)
-    follower_cache: Path = Path("~/.bsky/followers.json").expanduser()
+    follower_cache: Path | None = Field(default=None)
 
     @model_validator(mode="before")
     @classmethod
@@ -29,6 +29,15 @@ class Settings(BaseSettings):
         if not (values.get("bsky_handle") and values.get("bsky_password")):
             raise ValueError("Must set BSKY_HANDLE and BSKY_PASSWORD.")
         return values
+    
+    @model_validator(mode="after")
+    def set_cache_path(self):
+        if self.follower_cache is None:
+            username = self.bsky_handle.replace("@", "").replace(".", "_")
+            cache_dir = Path("~/.bsky").expanduser()
+            cache_dir.mkdir(exist_ok=True)
+            self.follower_cache = cache_dir / f"{username}_followers.json"
+        return self
 
 
 class FollowerState(TypedDict):
